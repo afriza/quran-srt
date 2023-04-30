@@ -1,0 +1,10 @@
+/qsrt
+/qsrt.exe
+/qsrt-*
+/srt
+/srt.exe
+/srt-*
+
+*.db
+*.db-shm
+*.db-wal

@@ -1,0 +1,172 @@
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<!-- Tell the browser to be responsive to screen width -->
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="Quran Translation SRT Subtitle">
+	<meta name="author" content="Afriza N. Arief">
+	<title>Download All Translated Languages of The Holy Quran</title>
+	<!-- Bootstrap Core CSS -->
+	<link href="/assets/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+	<link href="/assets/plugins/bootstrap-datepicker/bootstrap-datepicker.min.css" rel="stylesheet" type="text/css" />
+	<!-- morris CSS -->
+	<link href="/assets/plugins/morrisjs/morris.css" rel="stylesheet">
+	<link href="/assets/plugins/sweetalert/sweetalert.css" rel="stylesheet" type="text/css">
+	<link href="/assets/plugins/select2/dist/css/select2.min.css" rel="stylesheet" type="text/css">
+	<!-- Custom CSS -->
+	<link href="/css/style.css" rel="stylesheet">
+	<!-- You can change the theme colors from here -->
+	<link href="/css/colors/blue.css" id="theme" rel="stylesheet">
+	<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+	<!--[if lt IE 9]>
+	<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+	<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+	<![endif]-->
+	<link href="/css/intech.css" rel="stylesheet">
+
+	<script src="/assets/plugins/jquery/jquery.min.js"></script>
+	<script src="/assets/plugins/popper/popper.min.js"></script>
+	<script src="/assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+	<script src="/js/jquery.slimscroll.js"></script>
+	<script src="/js/waves.js"></script>
+	<script src="/js/sidebarmenu.js"></script>
+	<script src="/assets/plugins/sticky-kit-master/dist/sticky-kit.min.js"></script>
+	<script src="/js/custom.min.js"></script>
+	<script src="/assets/plugins/sparkline/jquery.sparkline.min.js"></script>
+	<script src="/assets/plugins/raphael/raphael-min.js"></script>
+	<script src="/assets/plugins/morrisjs/morris.min.js"></script>
+	<!--<script src="/js/dashboard1.js"></script>-->
+	<script src="/assets/plugins/styleswitcher/jQuery.style.switcher.js"></script>
+	<script src="/assets/plugins/datatables/jquery.dataTables.min.js"></script>
+	<script src="/assets/plugins/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
+	<script src="/assets/plugins/blockUI/jquery.blockUI.js"></script>
+	<script src="/assets/plugins/sweetalert/sweetalert.min.js"></script>
+	<script src="/assets/plugins/select2/dist/js/select2.min.js"></script>
+	<script src="/assets/plugins/datatables/natural.js"></script>
+	<script src="/js/js.cookie.min.js"></script>
+	<script src="/js/intech/util.js"></script>
+
+	<style>
+		body {
+			zoom: 90%;
+		}
+
+		.table td, .table th {
+			padding: .50rem;
+		}
+
+		.container-fluid {
+			padding: 0 15px 15px 15px;
+		}
+
+		.page-titles {
+			margin: 0 0px 15px;
+			padding: 10px 5px;
+		}
+	</style>
+</head>
+<body class="fix-header fix-sidebar card-no-border">
+<div class="page-wrapper">
+	<div class="row page-titles">
+		<div class="col-md-12 align-self-center">
+			<h3 class="text-themecolor">Download All Translated Languages of The Holy Quran</h3>
+		</div>
+	</div>
+	<div class="container-fluid">
+
+	<div class="row">
+		<div class="col-md-12">
+			<div class="card">
+				<div class="card-body">
+					<form id="input-form" class="form-horizontal form-material needs-validation" action="" method="POST" enctype="multipart/form-data">
+
+					<h5>Download All Translated Languages of The Holy Quran</h5>
+					<hr>
+
+					<div class="row">
+						<div class="form-group col-md-6">
+							<label class="font-weight-bold" for="ayah_last">Surah Number / Name	</label>
+							<select class="select2 form-control form-control-line" id="surah" name="surah" onchange="">
+								<option value="all">-- Surah Number + Name --</option>
+							</select>
+						</div>
+
+						<div class="form-group col-md-3">
+							<label class="font-weight-bold" for="ayah_first">First Ayah</label>
+							<input type="text" id="ayah_first" name="ayah_first" value=""
+								pattern="[0-9]+" placeholder=""
+								class="form-control form-control-line" required>
+						</div>
+
+						<div class="form-group col-md-3">
+							<label class="font-weight-bold" for="ayah_last">Last Ayah</label>
+							<input type="text" id="ayah_last" name="ayah_last" value=""
+								pattern="[0-9]+" placeholder=""
+								class="form-control form-control-line" required>
+							</select>
+						</div>
+
+						<div class="form-group col-md-3">
+							<button onclick="" type="button" class="btn btn-outline-success btn-sm">Update</button>
+						</div>
+					</div>
+
+					<div class="table-responsive">
+						<table id="table-ayah" class="display nowrap table table-hover table-bordered"
+							   cellspacing="0" width="100%">
+						<thead>
+							<tr>
+								<th>Ayah</th>
+								<th>Start</th>
+								<th>End</th>
+								<th>Translation Preview</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>Ayah #</td>
+								<td>
+									<input type="text" id="start_1" name="start_1" value=""
+										pattern="([0-9]{1,2}:){0,2}[0-9]+([.][0-9]+)?" placeholder="1:02:03.456" size="13" maxlength="13"
+										required> <!-- class="form-control form-control-line" -->
+								</td>
+								<td>
+									<input type="text" id="start_1" name="start_1" value=""
+										pattern="([0-9]{1,2}:){0,2}[0-9]+([.][0-9]+)?" placeholder="1:02:03.456" size="13" maxlength="13"
+										required> <!-- class="form-control form-control-line" -->
+								</td>
+								<td>Translation Preview</td>
+							</tr>
+						</tbody>
+						</table>
+					</div>
+
+					<div class="form-group">
+						<div class="col-sm-12">
+							<button id="download" onclick="" class="btn btn-info" type="button">Download as zipped SRT files</button>
+						</div>
+					</div>
+
+					</form>
+				</div>
+			</div>
+
+		</div>
+		<!-- Column -->
+	</div>
+
+	</div>
+</div>
+
+<script>
+$(function(){
+	$('#table-ayah').DataTable({
+		order: [[0, 'asc']],
+	});
+})
+</script>
+
+</body>
+</html>

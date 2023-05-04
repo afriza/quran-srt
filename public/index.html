@@ -45,6 +45,7 @@
 	<script src="/assets/plugins/select2/dist/js/select2.min.js"></script>
 	<script src="/assets/plugins/datatables/natural.js"></script>
 	<script src="/js/js.cookie.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/wretch/2.5.2/wretch.min.js" integrity="sha512-ODUFGt849cHLqlJP/v/oweHgkM+t31GgIsGZPLka5uDiRpclLfZAXusSOQXGieA4aLUC0bjq4ua1X6uJ9oVA1A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 	<style>
 		body {
@@ -92,22 +93,10 @@
 			<nav class="sidebar-nav">
 				<ul id="sidebarnav">
 
-					<li><a class="waves-effect waves-dark" href="#" aria-expanded="false"><i class="fa fa-list"></i><span class="hide-menu">English
+					<li id="lang_sample" class="hide"><a class="waves-effect waves-dark" href="#" aria-expanded="false"><i class="fa fa-list"></i><span class="hide-menu"><span class="lang-name">Sample</span>
 							<div class="form-check">
-								<input class="form-check-input hide" type="radio" name="english" id="eng-1" value="tunai" checked>
-								<label class="form-check-label" for="eng-1">Dr. Mustafa Khattab</label>
-							</div>
-							<div class="form-check">
-								<input class="form-check-input hide" type="radio" name="english" id="eng-2" value="nontunai">
-								<label class="form-check-label" for="eng-2">Pickthall</label>
-							</div>
-							<div class="form-check">
-								<input class="form-check-input hide" type="radio" name="english" id="eng-3" value="nontunai">
-								<label class="form-check-label" for="eng-3">Saheeh International</label>
-							</div>
-							<div class="form-check">
-								<input class="form-check-input hide" type="radio" name="english" id="eng-4" value="nontunai">
-								<label class="form-check-label" for="eng-4">Taqi-ud-Din al-Hilali & Muhsin Khan</label>
+								<input class="form-check-input hide" type="radio" name="sample" id="sample-1" value="1" checked>
+								<label class="form-check-label" for="sample-1">Dr. Mustafa Khattab</label>
 							</div>
 							</span></a>
 					</li>
@@ -136,29 +125,29 @@
 
 					<div class="row">
 						<div class="form-group col-md-6">
-							<label class="font-weight-bold" for="ayah_last">Surah Number / Name	</label>
-							<select class="select2 form-control form-control-line" id="surah" name="surah" onchange="">
-								<option value="all">-- Surah Number + Name --</option>
+							<label class="font-weight-bold" for="surah_list">Surah Number / Name	</label>
+							<select class="select2 form-control form-control-line" id="surah_list" name="surah_list" onchange="surah_changed(this)">
+								<option value="">-- Surah Number &amp; Name --</option>
 							</select>
 						</div>
 
 						<div class="form-group col-md-3">
 							<label class="font-weight-bold" for="ayah_first">First Ayah</label>
-							<input type="text" id="ayah_first" name="ayah_first" value=""
+							<input type="number" id="ayah_first" name="ayah_first" min="1" value=""
 								pattern="[0-9]+" placeholder=""
 								class="form-control form-control-line" required>
 						</div>
 
 						<div class="form-group col-md-3">
 							<label class="font-weight-bold" for="ayah_last">Last Ayah</label>
-							<input type="text" id="ayah_last" name="ayah_last" value=""
+							<input type="number" id="ayah_last" name="ayah_last" min="1" value=""
 								pattern="[0-9]+" placeholder=""
 								class="form-control form-control-line" required>
 							</select>
 						</div>
 
 						<div class="form-group col-md-3">
-							<button onclick="" type="button" class="btn btn-outline-success btn-sm">Update</button>
+							<button onclick="surah_ayah_update()" type="button" class="btn btn-outline-success btn-sm">Update</button>
 						</div>
 					</div>
 
@@ -212,11 +201,108 @@
 
 
 <script>
+let surah = null
+let chapters = null
+let translations = null
+
+let lang_list = $('#sidebarnav')
+let lang_sample = $('#lang_sample')
+let surah_list = $('#surah_list')
+let ayah_first = $('#ayah_first')
+let ayah_last = $('#ayah_last')
+
+let api = wretch('https://api.quran.com/api/v4')
+
+function list_surah() {
+	api.get('/chapters').json(jo => {
+		let data = []
+		chapters = jo.chapters
+		chapters.forEach(el => {
+			data.push({
+				id: el.id,
+				text: `${el.id}. ${el.name_simple} (${el.translated_name.name})`
+			})
+			surah_list.select2({data})
+		})
+	})
+}
+
+function list_translations() {
+	api.get('/resources/translations').json(jo => {
+		translations = jo.translations
+		translations.forEach(trn => {
+			let lang_name = trn.language_name.toLowerCase()
+			let li = lang_list.find('#'+ lang_name)
+			if (li.length > 0) {
+				let el_div_last = li.find('div').last()
+				let el_div = el_div_last.clone()
+				el_div.find('input').prop('checked', false)
+				set_trn_lang(el_div, trn, lang_name)
+				el_div_last.after(el_div)
+			} else {
+				let el_li = lang_sample.clone()
+				el_li.attr('id', lang_name)
+				el_li.find('span[class=lang-name]').text(lang_name)
+				el_li.removeClass('hide')
+				el_li.find('input').attr('name', lang_name)
+				el_li.find('input').prop('checked', true)
+				set_trn_lang(el_li, trn, lang_name)
+				lang_sample.before(el_li)
+			}
+		})
+	})
+}
+
+function set_trn_lang(el, trn, lang_name) {
+	let elem = $(el)
+	let el_input = elem.find('input')
+	el_input.attr('id', `${lang_name}-${trn.id}`)
+	el_input.attr('value', trn.id)
+	let el_label =  elem.find('label')
+	el_label.attr('for', `${lang_name}-${trn.id}`)
+	let text = trn.name
+	if (!text.includes(trn.author_name)) {
+		//text += '; ' + trn.author_name
+	}
+	el_label.text(text)
+}
+
+function surah_changed(el) {
+	let id = el.options[el.selectedIndex].value
+	surah = chapters?.[id-1]
+	if (surah) {
+		let n = surah.verses_count
+		ayah_first.attr('max', n)
+		ayah_first.attr('placeholder', 'max: ' + n)
+		ayah_last.attr('max', n)
+		ayah_last.attr('placeholder', 'max: ' + n)
+	} else {
+		ayah_first.attr('placeholder', '')
+		ayah_last.attr('placeholder', '')
+	}
+}
+
+function surah_ayah_update() {
+	let n = surah?.verses_count
+	let f = ayah_first.val()
+	let l = ayah_last.val()
+	let ok = f >= 1 && l >= 1 && f <= n && l <= n && f <= l
+	if (!ok) {
+		alert('Please use valid surah and ayah range!')
+		return
+	}
+	//api.get('/quran/translations/tn-id')
+}
+
 $(function(){
 	$('#table-ayah').DataTable({
 		order: [[0, 'asc']],
 	});
+
+	list_surah()
+	list_translations()
 })
+
 </script>
 
 </body>

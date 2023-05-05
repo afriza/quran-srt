@@ -171,7 +171,7 @@
 										required> <!-- class="form-control form-control-line" -->
 								</td>
 								<td>
-									<input type="text" id="start_1" name="start_1" value=""
+									<input type="text" id="end_1" name="end_1" value=""
 										pattern="([0-9]{1,2}:){0,2}[0-9]+([.][0-9]+)?" placeholder="1:02:03.456" size="13" maxlength="13"
 										required> <!-- class="form-control form-control-line" -->
 								</td>
@@ -204,6 +204,7 @@
 let surah = null
 let chapters = null
 let translations = null
+let ayah_trns = null
 
 let lang_list = $('#sidebarnav')
 let lang_sample = $('#lang_sample')
@@ -292,7 +293,34 @@ function surah_ayah_update() {
 		alert('Please use valid surah and ayah range!')
 		return
 	}
-	//api.get('/quran/translations/tn-id')
+	let trn_id = $('input[name=english]:checked').val()
+	api.get('/quran/translations/'+trn_id+'?chapter_number='+surah.id).json(jo => {
+		ayah_trns = jo.translations
+		ayah_trns.forEach((el, i, a) => {
+			a[i].i = i+1
+			a[i].start = `
+				<input type="text" id="start_${i+1}" name="start_${i+1}"
+					value="" pattern="([0-9]{1,2}:){0,2}[0-9]+([.][0-9]+)?"
+					placeholder="1:02:03.456" size="13" maxlength="13"
+					required>`
+			a[i].end = `
+				<input type="text" id="end_${i+1}" name="end_${i+1}"
+					value="" pattern="([0-9]{1,2}:){0,2}[0-9]+([.][0-9]+)?"
+					placeholder="1:02:03.456" size="13" maxlength="13"
+					required>`
+		})
+		ayah_trns = ayah_trns.filter(el => el.i >= f && el.i <= l)
+		$('#table-ayah').DataTable({
+			destroy: true,
+			data: ayah_trns,
+			columns: [
+				{ data: 'i' },
+				{ data: 'start' },
+				{ data: 'end' },
+				{ data: 'text' },
+			],
+		})
+	})
 }
 
 $(function(){

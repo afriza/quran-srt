@@ -240,9 +240,10 @@ function list_translations() {
 				set_trn_lang(el_div, trn, lang_name)
 				el_div_last.after(el_div)
 			} else {
+				let lis = lang_list.find('li')
 				let el_li = lang_sample.clone()
 				el_li.attr('id', lang_name)
-				el_li.find('span[class=lang-name]').text(lang_name)
+				el_li.find('span[class=lang-name]').text(lis.length +'. '+ upper_words_first(lang_name))
 				el_li.removeClass('hide')
 				el_li.find('input').attr('name', lang_name)
 				el_li.find('input').prop('checked', true)
@@ -302,6 +303,19 @@ $(function(){
 	list_surah()
 	list_translations()
 })
+
+function upper_words_first(str) {
+	let s = ''
+	let i = 0
+	do {
+		str = str.substring(0,1).toUpperCase()+str.substring(1)
+		i = str.indexOf(' ') + 1
+		s += str.substring(0, i)
+		str = str.substring(i)
+	} while (i > 0)
+	s += str
+	return s
+}
 
 </script>
 

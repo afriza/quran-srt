@@ -93,10 +93,10 @@
 			<nav class="sidebar-nav">
 				<ul id="sidebarnav">
 
-					<li id="lang_sample" class="hide"><a class="waves-effect waves-dark" href="#" aria-expanded="false"><i class="fa fa-list"></i><span class="hide-menu"><span class="lang-name">Sample</span>
+					<li id="lang_sample" class="hide lang"><a class="waves-effect waves-dark" href="#" aria-expanded="false"><i class="fa fa-list"></i><span class="hide-menu"><span class="lang-name">Sample</span>
 							<div class="form-check">
-								<input class="form-check-input hide" type="radio" name="sample" id="sample-1" value="1" checked>
-								<label class="form-check-label" for="sample-1">Dr. Mustafa Khattab</label>
+								<input class="form-check-input hide lang-id" type="radio" name="sample" id="sample-1" value="1">
+								<label class="form-check-label lang-label" for="sample-1">Dr. Mustafa Khattab</label>
 							</div>
 							</span></a>
 					</li>
@@ -183,7 +183,9 @@
 
 					<div class="form-group">
 						<div class="col-sm-12">
-							<button id="download" onclick="" class="btn btn-info" type="button">Download as zipped SRT files</button>
+							<button id="zip_prepare" class="btn btn-info" type="submit">Prepare zipped SRT files</button>
+							<span id="progress"></span>
+							<button id="zip_download" onclick="download_zip()" class="btn btn-info hide" type="button" disabled>Download zipped SRT files</button>
 						</div>
 					</div>
 
@@ -199,18 +201,23 @@
 </div>
 </div>
 
-
+<script type="text/javascript" src="https://gildas-lormeau.github.io/zip.js/demos/lib/zip.js"></script>
+<script type="text/javascript" src="/js/jszip.min.js"></script>
+<script type="text/javascript" src="/js/FileSaver.min.js"></script>
 <script>
 let surah = null
 let chapters = null
 let translations = null
 let ayah_trns = null
+let promise_zip = null
 
 let lang_list = $('#sidebarnav')
 let lang_sample = $('#lang_sample')
 let surah_list = $('#surah_list')
 let ayah_first = $('#ayah_first')
 let ayah_last = $('#ayah_last')
+let zip_download = $('#zip_download')
+let progress = $('#progress')
 
 let api = wretch('https://api.quran.com/api/v4')
 
@@ -221,7 +228,7 @@ function list_surah() {
 		chapters.forEach(el => {
 			data.push({
 				id: el.id,
-				text: `${el.id}. ${el.name_simple} (${el.translated_name.name})`
+				text: `${pad_zero(el.id,3)}. ${el.name_simple} (${el.translated_name.name})`
 			})
 			surah_list.select2({data})
 		})
@@ -231,26 +238,36 @@ function list_surah() {
 function list_translations() {
 	api.get('/resources/translations').json(jo => {
 		translations = jo.translations
+		let m = translations.m = {} // map
 		translations.forEach(trn => {
+			m[trn.id] = trn
 			let lang_name = trn.language_name.toLowerCase()
-			let li = lang_list.find('#'+ lang_name)
+			let lang_name_id = lang_name.replace(' ','-')
+			let li = lang_list.find('#'+ lang_name_id)
+			let el, trn_name
 			if (li.length > 0) {
 				let el_div_last = li.find('div').last()
 				let el_div = el_div_last.clone()
 				el_div.find('input').prop('checked', false)
-				set_trn_lang(el_div, trn, lang_name)
+				trn_name = set_trn_lang(el_div, trn, lang_name)
 				el_div_last.after(el_div)
+				el = el_div
 			} else {
 				let lis = lang_list.find('li')
 				let el_li = lang_sample.clone()
-				el_li.attr('id', lang_name)
-				el_li.find('span[class=lang-name]').text(lis.length +'. '+ upper_words_first(lang_name))
+				el_li.attr('id', lang_name_id)
+				el_li.find('span[class=lang-name]').text(pad_zero(lis.length,2) +'. '+ upper_words_first(lang_name))
 				el_li.removeClass('hide')
 				el_li.find('input').attr('name', lang_name)
 				el_li.find('input').prop('checked', true)
-				set_trn_lang(el_li, trn, lang_name)
+				trn_name = set_trn_lang(el_li, trn, lang_name)
 				lang_sample.before(el_li)
+				el = el_li
 			}
+			if (el.is('div')) {
+				el = el.parent()
+			}
+			trn.fname = el.find('span[class=lang-name]').text() +'. '+ trn_name +'.srt'
 		})
 	})
 }
@@ -267,6 +284,7 @@ function set_trn_lang(el, trn, lang_name) {
 		//text += '; ' + trn.author_name
 	}
 	el_label.text(text)
+	return text
 }
 
 function surah_changed(el) {
@@ -293,30 +311,38 @@ function surah_ayah_update() {
 		alert('Please use valid surah and ayah range!')
 		return
 	}
+	zip_download.addClass('hide')
+	progress.text('')
 	let trn_id = $('input[name=english]:checked').val()
 	api.get('/quran/translations/'+trn_id+'?chapter_number='+surah.id).json(jo => {
-		ayah_trns = jo.translations
-		ayah_trns.forEach((el, i, a) => {
-			a[i].i = i+1
-			a[i].start = `
-				<input type="text" id="start_${i+1}" name="start_${i+1}"
-					value="" pattern="([0-9]{1,2}:){0,2}[0-9]+([.][0-9]+)?"
+		let trns = jo.translations
+		trns.forEach((el, i, a) => {
+			let id = i+1
+			a[i].id = id
+			a[i].start_html = `
+				<input type="text" id="start_${id}" name="start_${id}"
+					value="" pattern="([0-9]{1,2}:){0,2}[0-9]+([.,][0-9]{1,3})?"
 					placeholder="1:02:03.456" size="13" maxlength="13"
 					required>`
-			a[i].end = `
-				<input type="text" id="end_${i+1}" name="end_${i+1}"
-					value="" pattern="([0-9]{1,2}:){0,2}[0-9]+([.][0-9]+)?"
+			a[i].end_html = `
+				<input type="text" id="end_${id}" name="end_${id}"
+					value="" pattern="([0-9]{1,2}:){0,2}[0-9]+([.,][0-9]{1,3})?"
 					placeholder="1:02:03.456" size="13" maxlength="13"
 					required>`
 		})
-		ayah_trns = ayah_trns.filter(el => el.i >= f && el.i <= l)
+		trns = trns.filter(el => el.id >= f && el.id <= l)
+		ayah_trns = {shown_trn: trn_id}
+		ayah_trns[trn_id] = {
+			trns,
+			meta: jo.meta,
+		}
 		$('#table-ayah').DataTable({
 			destroy: true,
-			data: ayah_trns,
+			data: trns,
 			columns: [
-				{ data: 'i' },
-				{ data: 'start' },
-				{ data: 'end' },
+				{ data: 'id' },
+				{ data: 'start_html' },
+				{ data: 'end_html' },
 				{ data: 'text' },
 			],
 		})
@@ -330,6 +356,7 @@ $(function(){
 
 	list_surah()
 	list_translations()
+	$('#input-form').submit(prepare_zip)
 })
 
 function upper_words_first(str) {
@@ -337,7 +364,8 @@ function upper_words_first(str) {
 	let i = 0
 	do {
 		str = str.substring(0,1).toUpperCase()+str.substring(1)
-		i = str.indexOf(' ') + 1
+		let m = str.match(/[ ,-]/)
+		i = (m?.index ?? -1) + 1
 		s += str.substring(0, i)
 		str = str.substring(i)
 	} while (i > 0)
@@ -345,6 +373,120 @@ function upper_words_first(str) {
 	return s
 }
 
+function srt_fmt_ts(ts) {
+	if (typeof ts != 'string') {
+		return ''
+	}
+	let match = ts.match(/^(?:([0-9]{1,2}):)??(?:([0-9]{1,2}):)?([0-9]+)(?:[.,]([0-9]{1,3}))?$/)
+	if (!match) {
+		return ''
+	}
+	let ms = match[4] ?? 0
+	ms = pad_zero(ms, -3) | 0
+	ms += (match[3] ?? 0) * 1000
+	ms += (match[2] ?? 0) * 1000*60
+	ms += (match[1] ?? 0) * 1000*60*60
+	let s =  ms/1000 | 0
+	let m = s/60 | 0
+	let h = m/60 | 0
+	ms = ms % 1000
+	s = s % 60
+	m = m % 60
+	ms = pad_zero(ms, 3)
+	s = pad_zero(s, 2)
+	m = pad_zero(m, 2)
+	h = pad_zero(h, 2)
+	return `${h}:${m}:${s},${ms}`
+}
+
+function pad_zero(num, size) {
+	// Ref: https://stackoverflow.com/a/2998822/109747
+	num = num.toString()
+	let left = true
+	if (size < 0) {
+		left = false
+		size = -size
+	}
+	while (num.length < size) {
+		if (left) {
+			num = "0" + num
+		} else {
+			num += "0"
+		}
+	}
+	return num
+}
+
+async function gen_srt(trn_id, surah_id, ayah_f, ayah_l) {
+	let jo = await api.get('/quran/translations/'+trn_id+'?chapter_number='+surah_id).json()
+	let trns = jo.translations
+	trns.forEach((el, i, a) => {
+		let id = i+1
+		el.id = id
+	})
+	trns = trns.filter(el => el.id >= ayah_f && el.id <= ayah_l)
+	
+	let srt = trns.map((ayah_trn, idx) => {
+		let start = $('#start_'+ ayah_trn.id).val()
+		let end = $('#end_'+ ayah_trn.id).val()
+		start = srt_fmt_ts(start)
+		end = srt_fmt_ts(end)
+		return `${idx+1}\n`+
+			`${start} --> ${end}\n`+
+			`${ayah_trn.text}\n\n`
+	}).join('')
+	return srt
+}
+
+async function prepare_zip(ev) {
+	ev.preventDefault()
+	zip_download.prop('disabled', true)
+	zip_download.addClass('hide')
+
+	let zip = new JSZip()
+	let surah_id = surah_list.val()
+	let ayah_f = ayah_first.val()
+	let ayah_l = ayah_last.val()
+	let langs = $('.lang-id:checked')
+	for (let i=0; i<langs.length; i++) {
+		let trn_id = langs[i].value
+		let fname = translations?.m?.[trn_id]?.fname
+		progress.text(`preparing "${fname}"`)
+		let srt = await gen_srt(trn_id, surah_id, ayah_f, ayah_l)
+		zip.file(fname, srt)
+	}
+	progress.text(`done!`)
+	promise_zip = zip.generateAsync({type : "blob"});
+
+	/*
+	let trn_id = ayah_trns?.shown_trn
+	let fname = translations?.m?.[trn_id]?.fname
+	let srt = ayah_trns?.[trn_id]?.trns.map((ayah_trn, idx) => {
+		let start = $('#start_'+ ayah_trn.id).val()
+		let end = $('#end_'+ ayah_trn.id).val()
+		start = srt_fmt_ts(start)
+		end = srt_fmt_ts(end)
+		return `${idx+1}\n`+
+			`${start} --> ${end}\n`+
+			`${ayah_trn.text}\n\n`
+	}).join('')
+	console.log('srt: %o', srt)
+	*/
+
+	zip_download.prop('disabled', false)
+	zip_download.removeClass('hide')
+}
+
+async function download_zip() {
+	console.log('zip_down')
+	let ayah_f = ayah_first.val()
+	let ayah_l = ayah_last.val()
+	let d = new Date()
+	let ts = `${d.getFullYear()}-${pad_zero(d.getMonth(),2)}-${pad_zero(d.getDate(),2)}T${pad_zero(d.getHours(),2)}${pad_zero(d.getMinutes(),2)}${pad_zero(d.getSeconds(),2)}`
+	let zip_name = `${pad_zero(surah.id,3)} ${surah.name_simple} (${surah.translated_name?.name}) ${ayah_f}-${ayah_l} ${ts}.zip`
+	let blob = await promise_zip
+	saveAs(blob, zip_name)
+}
 </script>
 
 </body>

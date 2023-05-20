@@ -349,16 +349,6 @@ function surah_ayah_update() {
 	})
 }
 
-$(function(){
-	$('#table-ayah').DataTable({
-		order: [[0, 'asc']],
-	});
-
-	list_surah()
-	list_translations()
-	$('#input-form').submit(prepare_zip)
-})
-
 function upper_words_first(str) {
 	let s = ''
 	let i = 0
@@ -417,6 +407,34 @@ function pad_zero(num, size) {
 	return num
 }
 
+async function gen_srt_ar(field, surah_id, ayah_f, ayah_l) {
+	ayah_f |= 0
+	ayah_l |= 0
+	let trns = []
+	for (let id=ayah_f; id<=ayah_l; id++) {
+		let jo = await api.get(`/verses/by_key/${surah_id}:${id}?fields=${field}`).json()
+		let text = jo?.verse?.[field]
+		let ayah = {
+			id,
+			text,
+		}
+		trns.push(ayah)
+	}
+
+	let srt = trns.map((ayah_trn, idx) => {
+		let start = $('#start_'+ ayah_trn.id).val()
+		let end = $('#end_'+ ayah_trn.id).val()
+		let text = $(`<span>${ayah_trn.text}</span>`)
+		start = srt_fmt_ts(start)
+		end = srt_fmt_ts(end)
+		text = text.text()
+		return `${idx+1}\n`+
+			`${start} --> ${end}\n`+
+			`${text}\n\n`
+	}).join('')
+	return srt
+}
+
 async function gen_srt(trn_id, surah_id, ayah_f, ayah_l) {
 	let jo = await api.get('/quran/translations/'+trn_id+'?chapter_number='+surah_id).json()
 	let trns = jo.translations
@@ -429,11 +447,13 @@ async function gen_srt(trn_id, surah_id, ayah_f, ayah_l) {
 	let srt = trns.map((ayah_trn, idx) => {
 		let start = $('#start_'+ ayah_trn.id).val()
 		let end = $('#end_'+ ayah_trn.id).val()
+		let text = $(`<span>${ayah_trn.text}</span>`)
 		start = srt_fmt_ts(start)
 		end = srt_fmt_ts(end)
+		text = text.text()
 		return `${idx+1}\n`+
 			`${start} --> ${end}\n`+
-			`${ayah_trn.text}\n\n`
+			`${text}\n\n`
 	}).join('')
 	return srt
 }
@@ -455,23 +475,15 @@ async function prepare_zip(ev) {
 		let srt = await gen_srt(trn_id, surah_id, ayah_f, ayah_l)
 		zip.file(fname, srt)
 	}
+
+	let field = 'text_imlaei'
+	let fname = `00. Arabic. ${upper_words_first(field.replace('_',' '))}.srt`
+	progress.text(`preparing "${fname}"`)
+	let srt = await gen_srt_ar(field, surah_id, ayah_f, ayah_l)
+	zip.file(fname, srt)
+
 	progress.text(`done!`)
 	promise_zip = zip.generateAsync({type : "blob"});
-
-	/*
-	let trn_id = ayah_trns?.shown_trn
-	let fname = translations?.m?.[trn_id]?.fname
-	let srt = ayah_trns?.[trn_id]?.trns.map((ayah_trn, idx) => {
-		let start = $('#start_'+ ayah_trn.id).val()
-		let end = $('#end_'+ ayah_trn.id).val()
-		start = srt_fmt_ts(start)
-		end = srt_fmt_ts(end)
-		return `${idx+1}\n`+
-			`${start} --> ${end}\n`+
-			`${ayah_trn.text}\n\n`
-	}).join('')
-	console.log('srt: %o', srt)
-	*/
 
 	zip_download.prop('disabled', false)
 	zip_download.removeClass('hide')
@@ -487,6 +499,17 @@ async function download_zip() {
 	let blob = await promise_zip
 	saveAs(blob, zip_name)
 }
+
+$(function(){
+	$('#table-ayah').DataTable({
+		order: [[0, 'asc']],
+	});
+
+	list_surah()
+	list_translations()
+	$('#input-form').submit(prepare_zip)
+})
+
 </script>
 
 </body>

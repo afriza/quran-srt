@@ -7,6 +7,28 @@
 	<meta name="description" content="Quran Translation SRT Subtitle">
 	<meta name="author" content="Afriza N. Arief">
 	<title>Download All Translated Languages of The Holy Quran</title>
+	<script>
+function redirHttps() {
+	if (location.protocol != 'http:')
+		return;
+	try {
+		let url = 'https://' + location.hostname + '/gen_OK'
+		let xhr = new XMLHttpRequest()
+		xhr.onreadystatechange = function() {
+			if (this.readyState == XMLHttpRequest.DONE && 
+				this.status == 200 && this.responseText == 'OK') {
+				// https cert valid. switch to https version.
+				location = 'https://' + location.hostname + location.pathname
+			}
+		}
+		xhr.open("GET", url, true)
+		xhr.send()
+	} catch (e) {
+		console.log('redirHttps: %s | %o', e && e.message || JSON.stringify(e), e)
+	}
+}
+redirHttps()
+	</script>
 	<!-- Bootstrap Core CSS -->
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/css/bootstrap.min.css" integrity="sha512-SbiR/eusphKoMVVXysTKG/7VseWii+Y3FdHrt0EpKgpToZeemhqHeZeLWLhJutz/2ut2Vw1uQEj2MbRF+TVBUA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/css/bootstrap-datepicker.min.css" integrity="sha512-34s5cpvaNG3BknEWSuOncX28vz97bRI59UnVtEEpFX536A7BtZSJHsDyFoCl8S7Dt2TPzcrCEoHBGeM4SUBDBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />

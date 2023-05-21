@@ -493,6 +493,10 @@ async function prepare_zip(ev) {
 	let ayah_l = ayah_last.val()
 	let langs = $('.lang-id:checked')
 	try {
+		if (!surah_id || !ayah_trns) {
+			alert('Please select surah and click [Update] button!')
+			return
+		}
 		for (let i=0; i<langs.length; i++) {
 			let trn_id = langs[i].value
 			let fname = translations?.m?.[trn_id]?.fname
@@ -514,8 +518,9 @@ async function prepare_zip(ev) {
 		zip_download.removeClass('hide')
 	} catch (err) {
 		progress.text(err?.message || JSON.stringify(err))
+	} finally {
+		zip_prepare.prop('disabled', false)
 	}
-	zip_prepare.prop('disabled', false)
 }
 
 async function download_zip() {

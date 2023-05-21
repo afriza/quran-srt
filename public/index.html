@@ -263,14 +263,15 @@ function list_translations() {
 		translations.forEach(trn => {
 			m[trn.id] = trn
 			let lang_name = trn.language_name.toLowerCase()
-			let lang_name_id = lang_name.replace(' ','-')
+			let lang_name_id = lang_name.replace(' ','-').replace(',','_')
 			let li = lang_list.find('#'+ lang_name_id)
+			let c = Cookies.get(lang_name_id)
 			let el, trn_name
 			if (li.length > 0) {
 				let el_div_last = li.find('div').last()
 				let el_div = el_div_last.clone()
-				el_div.find('input').prop('checked', false)
-				trn_name = set_trn_lang(el_div, trn, lang_name)
+				el_div.find('input').prop('checked', c == trn.id)
+				trn_name = set_trn_lang(el_div, trn, lang_name_id)
 				el_div_last.after(el_div)
 				el = el_div
 			} else {
@@ -279,9 +280,9 @@ function list_translations() {
 				el_li.attr('id', lang_name_id)
 				el_li.find('span[class=lang-name]').text(pad_zero(lis.length,2) +'. '+ upper_words_first(lang_name))
 				el_li.removeClass('hide')
-				el_li.find('input').attr('name', lang_name)
-				el_li.find('input').prop('checked', true)
-				trn_name = set_trn_lang(el_li, trn, lang_name)
+				el_li.find('input').attr('name', lang_name_id)
+				el_li.find('input').prop('checked', !c || c == trn.id)
+				trn_name = set_trn_lang(el_li, trn, lang_name_id)
 				lang_sample.before(el_li)
 				el = el_li
 			}
@@ -293,18 +294,18 @@ function list_translations() {
 	})
 }
 
-function set_trn_lang(el, trn, lang_name) {
+function set_trn_lang(el, trn, lang_name_id) {
 	let elem = $(el)
 	let el_input = elem.find('input')
-	el_input.attr('id', `${lang_name}-${trn.id}`)
+	el_input.attr('id', `${lang_name_id}-${trn.id}`)
 	el_input.attr('value', trn.id)
 	let el_label =  elem.find('label')
-	el_label.attr('for', `${lang_name}-${trn.id}`)
+	el_label.attr('for', `${lang_name_id}-${trn.id}`)
 	let text = trn.name
-	if (!text.includes(trn.author_name)) {
-		//text += '; ' + trn.author_name
-	}
 	el_label.text(text)
+	el_input.change(ev => {
+		Cookies.set(ev.target.name,ev.target.value)
+	})
 	return text
 }
 

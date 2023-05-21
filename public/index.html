@@ -263,7 +263,7 @@ function list_translations() {
 		translations.forEach(trn => {
 			m[trn.id] = trn
 			let lang_name = trn.language_name.toLowerCase()
-			let lang_name_id = lang_name.replace(' ','-').replace(',','_')
+			let lang_name_id = 'trn-'+ lang_name.replace(' ','-').replace(',','_')
 			let li = lang_list.find('#'+ lang_name_id)
 			let c = Cookies.get(lang_name_id)
 			let el, trn_name
@@ -335,7 +335,7 @@ function surah_ayah_update() {
 	}
 	zip_download.addClass('hide')
 	progress.text('')
-	let trn_id = $('input[name=english]:checked').val()
+	let trn_id = $('input[name=trn-english]:checked').val()
 	api.get('/quran/translations/'+trn_id+'?chapter_number='+surah.id).json(jo => {
 		let trns = jo.translations
 		trns.forEach((el, i, a) => {

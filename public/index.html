@@ -236,6 +236,7 @@ let lang_sample = $('#lang_sample')
 let surah_list = $('#surah_list')
 let ayah_first = $('#ayah_first')
 let ayah_last = $('#ayah_last')
+let zip_prepare = $('#zip_prepare')
 let zip_download = $('#zip_download')
 let progress = $('#progress')
 
@@ -480,6 +481,7 @@ async function gen_srt(trn_id, surah_id, ayah_f, ayah_l) {
 
 async function prepare_zip(ev) {
 	ev.preventDefault()
+	zip_prepare.prop('disabled', true)
 	zip_download.prop('disabled', true)
 	zip_download.addClass('hide')
 
@@ -488,29 +490,33 @@ async function prepare_zip(ev) {
 	let ayah_f = ayah_first.val()
 	let ayah_l = ayah_last.val()
 	let langs = $('.lang-id:checked')
-	for (let i=0; i<langs.length; i++) {
-		let trn_id = langs[i].value
-		let fname = translations?.m?.[trn_id]?.fname
+	try {
+		for (let i=0; i<langs.length; i++) {
+			let trn_id = langs[i].value
+			let fname = translations?.m?.[trn_id]?.fname
+			progress.text(`preparing "${fname}"`)
+			let srt = await gen_srt(trn_id, surah_id, ayah_f, ayah_l)
+			zip.file(fname, srt)
+		}
+
+		let field = 'text_imlaei'
+		let fname = `00. Arabic. ${upper_words_first(field.replace('_',' '))}.srt`
 		progress.text(`preparing "${fname}"`)
-		let srt = await gen_srt(trn_id, surah_id, ayah_f, ayah_l)
+		let srt = await gen_srt_ar(field, surah_id, ayah_f, ayah_l)
 		zip.file(fname, srt)
+
+		progress.text(`done!`)
+		promise_zip = zip.generateAsync({type : "blob"});
+
+		zip_download.prop('disabled', false)
+		zip_download.removeClass('hide')
+	} catch (err) {
+		progress.text(err?.message || JSON.stringify(err))
 	}
-
-	let field = 'text_imlaei'
-	let fname = `00. Arabic. ${upper_words_first(field.replace('_',' '))}.srt`
-	progress.text(`preparing "${fname}"`)
-	let srt = await gen_srt_ar(field, surah_id, ayah_f, ayah_l)
-	zip.file(fname, srt)
-
-	progress.text(`done!`)
-	promise_zip = zip.generateAsync({type : "blob"});
-
-	zip_download.prop('disabled', false)
-	zip_download.removeClass('hide')
+	zip_prepare.prop('disabled', false)
 }
 
 async function download_zip() {
-	console.log('zip_down')
 	let ayah_f = ayah_first.val()
 	let ayah_l = ayah_last.val()
 	let d = new Date()

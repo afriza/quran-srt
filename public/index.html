@@ -493,6 +493,7 @@ async function gen_srt_ar(field, surah_id, ayah_f, ayah_l) {
 		let text = $(`<span>${ayah_trn.text}</span>`)
 		start = srt_fmt_ts(start)
 		end = srt_fmt_ts(end)
+		text.find('sup').remove()
 		text = text.text()
 		return `${idx+1}\n`+
 			`${start} --> ${end}\n`+
@@ -516,6 +517,7 @@ async function gen_srt(trn_id, surah_id, ayah_f, ayah_l) {
 		let text = $(`<span>${ayah_trn.text}</span>`)
 		start = srt_fmt_ts(start)
 		end = srt_fmt_ts(end)
+		text.find('sup').remove()
 		text = text.text()
 		return `${idx+1}\n`+
 			`${start} --> ${end}\n`+

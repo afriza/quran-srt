@@ -271,7 +271,7 @@ function list_translations() {
 		translations.forEach(trn => {
 			m[trn.id] = trn
 			let lang_name = trn.language_name.toLowerCase()
-			let lang_name_id = 'trn-'+ lang_name.replace(' ','-').replace(',','_')
+			let lang_name_id = 'trn-'+ lang_name.replaceAll(' ','-').replaceAll(',','_')
 			let li = lang_list.find('#'+ lang_name_id)
 			let c = Cookies.get(lang_name_id)
 			let el, trn_name
@@ -551,7 +551,7 @@ async function prepare_zip(ev) {
 		}
 
 		let field = 'text_imlaei'
-		let fname = `00. Arabic. ${upper_words_first(field.replace('_',' '))}.srt`
+		let fname = `00. Arabic. ${upper_words_first(field.replaceAll('_',' '))}.srt`
 		progress.text(`preparing "${fname}"`)
 		let srt = await gen_srt_ar(field, surah_id, ayah_f, ayah_l)
 		zip.file(fname, srt)

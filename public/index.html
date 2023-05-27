@@ -118,8 +118,12 @@ redirHttps()
 
 					<li id="lang_sample" class="hide lang"><a class="waves-effect waves-dark" href="#" aria-expanded="false"><i class="fa fa-list"></i><span class="hide-menu"><span class="lang-name">Sample</span>
 							<div class="form-check">
-								<input class="form-check-input hide lang-id" type="radio" name="sample" id="sample-1" value="1">
-								<label class="form-check-label lang-label" for="sample-1">Dr. Mustafa Khattab</label>
+								<input class="form-check-input hide lang-none" type="radio" name="trn-sample" id="trn-sample-0" value="0">
+								<label class="form-check-label lang-none" for="trn-sample-0">None / Skipped</label>
+							</div>
+							<div class="form-check">
+								<input class="form-check-input hide lang-id" type="radio" name="trn-sample" id="trn-sample-1" value="1">
+								<label class="form-check-label lang-label" for="trn-sample-1">Dr. Mustafa Khattab</label>
 							</div>
 							</span></a>
 					</li>
@@ -278,7 +282,7 @@ function list_translations() {
 			if (li.length > 0) {
 				let el_div_last = li.find('div').last()
 				let el_div = el_div_last.clone()
-				el_div.find('input').prop('checked', c == trn.id)
+				el_div.find('input.lang-id').prop('checked', c == trn.id)
 				trn_name = set_trn_lang(el_div, trn, lang_name_id)
 				el_div_last.after(el_div)
 				el = el_div
@@ -288,8 +292,12 @@ function list_translations() {
 				el_li.attr('id', lang_name_id)
 				el_li.find('span[class=lang-name]').text(pad_zero(lis.length,2) +'. '+ upper_words_first(lang_name))
 				el_li.removeClass('hide')
-				el_li.find('input').attr('name', lang_name_id)
-				el_li.find('input').prop('checked', !c || c == trn.id)
+				el_li.find('label.lang-none').attr('for', lang_name_id +'-0')
+				el_li.find('input.lang-none').attr('id', lang_name_id +'-0')
+				el_li.find('input.lang-none').attr('name', lang_name_id)
+				el_li.find('input.lang-none').prop('checked', c == '0')
+				el_li.find('input.lang-id').attr('name', lang_name_id)
+				el_li.find('input.lang-id').prop('checked', !c || c == trn.id)
 				trn_name = set_trn_lang(el_li, trn, lang_name_id)
 				lang_sample.before(el_li)
 				el = el_li
@@ -299,15 +307,21 @@ function list_translations() {
 			}
 			trn.fname = el.find('span[class=lang-name]').text() +'. '+ trn_name +'.srt'
 		})
+		$('input.lang-none').change(ev => {
+			Cookies.set(ev.target.name,ev.target.value)
+			let lang = $(ev.target).parents('span').find('span.lang-name').text()
+			let name = $(ev.target).parent().find('label').text()
+			console.log('%o=%o',lang,name)
+		})
 	})
 }
 
 function set_trn_lang(el, trn, lang_name_id) {
 	let elem = $(el)
-	let el_input = elem.find('input')
+	let el_input = elem.find('input.lang-id')
 	el_input.attr('id', `${lang_name_id}-${trn.id}`)
 	el_input.attr('value', trn.id)
-	let el_label =  elem.find('label')
+	let el_label =  elem.find('label.lang-label')
 	el_label.attr('for', `${lang_name_id}-${trn.id}`)
 	let text = trn.name
 	el_label.text(text)

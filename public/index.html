@@ -290,7 +290,7 @@ function list_translations() {
 				let lis = lang_list.find('li')
 				let el_li = lang_sample.clone()
 				el_li.attr('id', lang_name_id)
-				el_li.find('span[class=lang-name]').text(pad_zero(lis.length,2) +'. '+ upper_words_first(lang_name))
+				el_li.find('span.lang-name').text(pad_zero(lis.length,2) +'. '+ upper_words_first(lang_name))
 				el_li.removeClass('hide')
 				el_li.find('label.lang-none').attr('for', lang_name_id +'-0')
 				el_li.find('input.lang-none').attr('id', lang_name_id +'-0')
@@ -305,7 +305,7 @@ function list_translations() {
 			if (el.is('div')) {
 				el = el.parent()
 			}
-			trn.fname = el.find('span[class=lang-name]').text() +'. '+ trn_name +'.srt'
+			trn.fname = el.find('span.lang-name').text() +'. '+ trn_name +'.srt'
 		})
 		$('input.lang-none').change(ev => {
 			Cookies.set(ev.target.name,ev.target.value)

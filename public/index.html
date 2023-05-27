@@ -324,7 +324,7 @@ function surah_changed(el) {
 	}
 }
 
-function surah_ayah_update() {
+async function surah_ayah_update() {
 	let n = surah?.verses_count
 	let f = ayah_first.val()
 	let l = ayah_last.val()
@@ -336,7 +336,8 @@ function surah_ayah_update() {
 	zip_download.addClass('hide')
 	progress.text('')
 	let trn_id = $('input[name=trn-english]:checked').val()
-	api.get('/quran/translations/'+trn_id+'?chapter_number='+surah.id).json(jo => {
+	try {
+		let jo = await api.get('/quran/translations/'+trn_id+'?chapter_number='+surah.id).json()
 		let trns = jo.translations
 		trns.forEach((el, i, a) => {
 			let id = i+1
@@ -369,7 +370,7 @@ function surah_ayah_update() {
 				{ data: 'text' },
 			],
 		})
-	})
+	} catch (err) {}
 }
 
 function upper_words_first(str) {

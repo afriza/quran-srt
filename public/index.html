@@ -170,6 +170,13 @@ redirHttps()
 						</div>
 
 						<div class="form-group col-md-3">
+							<label class="font-weight-bold" for="input_srt">Optional input SRT for timing</label>
+							<input type="file" id="input_srt" name="input_srt" accept=".srt"
+								class="form-control form-control-line">
+							</select>
+						</div>
+
+						<div class="form-group col-md-3">
 							<button onclick="surah_ayah_update()" type="button" class="btn btn-outline-success btn-sm">Update</button>
 						</div>
 					</div>
@@ -236,6 +243,7 @@ let lang_sample = $('#lang_sample')
 let surah_list = $('#surah_list')
 let ayah_first = $('#ayah_first')
 let ayah_last = $('#ayah_last')
+let input_srt = $('#input_srt')
 let zip_prepare = $('#zip_prepare')
 let zip_download = $('#zip_download')
 let progress = $('#progress')
@@ -370,6 +378,8 @@ async function surah_ayah_update() {
 				{ data: 'text' },
 			],
 		})
+
+		read_srt_file()
 	} catch (err) {}
 }
 
@@ -385,6 +395,38 @@ function upper_words_first(str) {
 	} while (i > 0)
 	s += str
 	return s
+}
+
+function read_srt_file() {
+	const file = input_srt[0].files[0]
+	if (!file) {
+		return
+	}
+	const reader = new FileReader()
+	reader.addEventListener('loadend', ()=> {
+		parse_srt(reader.result)
+	})
+	reader.readAsText(file)
+}
+
+function parse_srt(srt) {
+	let surah_id = surah_list.val()
+	if (!surah_id || !ayah_trns) {
+		alert('Please select surah and click [Update] button first!')
+		return
+	}
+
+	let ayat = srt.split(/(?:\r?\n|\r)/) // '\r\n' windows, '\n' unix, '\r' macOS < 10
+	let ayah_f = ayah_first.val()
+	let ayah_l = ayah_last.val()
+	for (let i=1, id=ayah_f; i<ayat.length && id<=ayah_l; i+=4, id++) {
+		let line = ayat[i]
+		let match = line.match(/(?:[0-9]+:)+[0-9]+[.,][0-9]+/g)
+		if (match?.length == 2) {
+			$('#start_'+id).val(match[0].replace(',','.'))
+			$('#end_'+id).val(match[1].replace(',','.'))
+		}
+	}
 }
 
 function srt_fmt_ts(ts) {

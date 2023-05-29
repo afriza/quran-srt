@@ -384,6 +384,7 @@ async function surah_ayah_update() {
 		}
 		$('#table-ayah').DataTable({
 			destroy: true,
+			paging: false,
 			data: trns,
 			columns: [
 				{ data: 'id_pad' },
